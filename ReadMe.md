@@ -44,37 +44,43 @@ Start-Process -FilePath "pssuspend64.exe" -ArgumentList "QQProtect.exe" -Verb ru
 （这里大家可能觉得10秒太短，不够输入密码：但是也不用着急输入密码，因为待第二次UAC提示后，QQ登陆窗口也是有效的）
 （不建议为了少点一次UAC提示，而关闭UAC或以管理员身份运行QQ）
 
-对于TIM用户，经验证，即使TIM运行中，将QQProtect.exe终止，TIM也能正常运行。
-如果QQProtect.exe未在运行，再次启动TIM时会自动运行QQProtect.exe，并将"HKLM\SYSTEM\CurrentControlSet\Services\QPCore"中的Start值改为2（即自动运行）。
-我们可以创建一个vbs，内容如下
-
+此外也可以使用vbs脚本。创建以下两个脚本，将这两个脚本与pssuspend64.exe放置于同一文件夹中：
+RunQQ.vbs
 ```
-'提权
-Set WshShell = WScript.CreateObject("WScript.Shell")
-If WScript.Arguments.Length = 0 Then
- CreateObject("Shell.Application").ShellExecute"wscript.exe" , """" & WScript.ScriptFullName &""" RunAsAdministrator",,"runas", 1
- WScript.Quit
-End if
+'解冻QQP
+Set objShell = CreateObject("Wscript.Shell")
+strPath = Wscript.ScriptFullName
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+Set objFile = objFSO.GetFile(strPath)
+strFolder = objFSO.GetParentFolderName(objFile)
+CreateObject("Shell.Application").ShellExecute strFolder + "\pssuspend64.exe", "-r QQProtect.exe", "", "runas", 0
 
-'运行TIM
-CreateObject("wscript.shell").run """D:\Program Files (x86)\Tencent\TIM\Bin\TIM.exe"""
+'运行QQ
+CreateObject("wscript.shell").run """C:\Program Files (x86)\Tencent\QQ\Bin\QQ.exe"""
 
 '等待10秒，可以设得更短
 wscript.sleep 10000
 
-'杀死QQProtect.exe
-strComputer="." 
-Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2") 
-Set colProcessList=objWMIService.ExecQuery ("select * from Win32_Process where Name='QQProtect.exe' ") 
-For Each objProcess in colProcessList 
-objProcess.Terminate() 
-Next 
-
-'禁止服务自启动
-createobject("wscript.shell").regwrite "HKLM\SYSTEM\CurrentControlSet\Services\QPCore\Start",4,"REG_DWORD"
+'调用另一脚本SuspendQQPSvc.vbs将QQProtect.exe挂起
+Set objShell = CreateObject("Wscript.Shell")
+strPath = Wscript.ScriptFullName
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+Set objFile = objFSO.GetFile(strPath)
+strFolder = objFSO.GetParentFolderName(objFile)
+CreateObject("Shell.Application").ShellExecute "wscript.exe", strFolder + "\SuspendQQPSvc.vbs", "", "", 0
 ```
-坑
-
+SuspendQQPSvc.vbs
+```
+'挂起QQProtect.exe
+Set objShell = CreateObject("Wscript.Shell")
+strPath = Wscript.ScriptFullName
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+Set objFile = objFSO.GetFile(strPath)
+strFolder = objFSO.GetParentFolderName(objFile)
+CreateObject("Shell.Application").ShellExecute strFolder + "\pssuspend64.exe", "QQProtect.exe", "", "runas", 0
+```
+创建RunQQ.vbs的快捷方式来运行QQ即可。
+创建任务计划，在开机时自动运行SuspendQQPSvc.vbs将QQP挂起。
 
 ##### 手动操作
 在[微软SysinternalsSuite官方网站](https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer)下载`ProcessExplorer`工具，得到一个zip压缩包，解压的文件中会有2个exe可执行文件。  
