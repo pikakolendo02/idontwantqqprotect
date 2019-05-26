@@ -56,7 +56,10 @@ If WScript.Arguments.Length = 0 Then
  WScript.Quit
 End if
 
-'等待10秒
+'运行TIM
+CreateObject("wscript.shell").run """D:\Program Files (x86)\Tencent\TIM\Bin\TIM.exe"""
+
+'等待10秒，可以设得更短
 wscript.sleep 10000
 
 '杀死QQProtect.exe
