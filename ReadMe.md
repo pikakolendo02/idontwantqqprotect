@@ -81,7 +81,7 @@ CreateObject("Shell.Application").ShellExecute strFolder + "\pssuspend64.exe", "
 ```
 创建RunQQ.vbs的快捷方式来运行QQ即可。
 创建任务计划，在开机时自动运行SuspendQQPSvc.vbs将QQP挂起。选择“不管用户是否登录都要运行”并勾选“不存储密码”和“使用最高权限运行”，新建两个触发器，选择“启动时”（延时5秒）和“登录时”（延时30秒）。
-QQP这玩意不乖，启动时虽然能挂起成功，登录后立即进任务管理器查看进程，会发现它过个几十秒后暗戳戳继续运行了，所以我们需要一个延时长一些的“登录时”触发器。被塞两次口球后，QQP终于安静下来。
+QQP这玩意不乖，启动时虽然能挂起成功，登录后立即进任务管理器查看进程，会发现它过个几十秒后暗戳戳继续运行了，所以我们需要一个延时长一些的“登录时”触发器。被塞两次口球后，QQP终于安静下来。注意，这里的延时可能需要针对你的设备进行调整，如果在任务管理器中发现它又运行了，则需要将延时调大。
 
 ##### 手动操作
 在[微软SysinternalsSuite官方网站](https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer)下载`ProcessExplorer`工具，得到一个zip压缩包，解压的文件中会有2个exe可执行文件。  
