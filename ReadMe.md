@@ -1,3 +1,4 @@
+#Forked from KaneGreen
 # 我不需要QQProtect.exe
 
 用于暂时性解决QQProtect.exe的**流氓行为**的问题。
@@ -42,6 +43,34 @@ Start-Process -FilePath "pssuspend64.exe" -ArgumentList "QQProtect.exe" -Verb ru
 大约10秒后再遇到一次UAC提示，请也点击`是`。  
 （这里大家可能觉得10秒太短，不够输入密码：但是也不用着急输入密码，因为待第二次UAC提示后，QQ登陆窗口也是有效的）
 （不建议为了少点一次UAC提示，而关闭UAC或以管理员身份运行QQ）
+
+对于TIM用户，经验证，即使TIM运行中，将QQProtect.exe终止，TIM也能正常运行。
+如果QQProtect.exe未在运行，再次启动TIM时会自动运行QQProtect.exe，并将"HKLM\SYSTEM\CurrentControlSet\Services\QPCore"中的Start值改为2（即自动运行）。
+我们可以创建一个vbs，内容如下
+
+```
+'提权
+Set WshShell = WScript.CreateObject("WScript.Shell")
+If WScript.Arguments.Length = 0 Then
+ CreateObject("Shell.Application").ShellExecute"wscript.exe" , """" & WScript.ScriptFullName &""" RunAsAdministrator",,"runas", 1
+ WScript.Quit
+End if
+
+'等待10秒
+wscript.sleep 10000
+
+'杀死QQProtect.exe
+strComputer="." 
+Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2") 
+Set colProcessList=objWMIService.ExecQuery ("select * from Win32_Process where Name='QQProtect.exe' ") 
+For Each objProcess in colProcessList 
+objProcess.Terminate() 
+Next 
+
+'禁止服务自启动
+createobject("wscript.shell").regwrite "HKLM\SYSTEM\CurrentControlSet\Services\QPCore\Start",4,"REG_DWORD"
+```
+坑
 
 
 ##### 手动操作
